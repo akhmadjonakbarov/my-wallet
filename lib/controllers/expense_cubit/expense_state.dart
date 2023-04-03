@@ -17,13 +17,13 @@ class ExpenseInitial extends ExpenseState {}
 class ExpenseLoading extends ExpenseState {}
 
 class ExpenseLoaded extends ExpenseState {
-  List<Expense> expenses;
-  ExpenseLoaded({required this.expenses});
+  final List<Expense> expenses;
+  const ExpenseLoaded({required this.expenses});
 }
 
 class ExpenseDelete extends ExpenseState {}
 
 class ExpenseError extends ExpenseState {
-  String errorMsg;
-  ExpenseError({required this.errorMsg});
+  final String errorMsg;
+  const ExpenseError({required this.errorMsg});
 }

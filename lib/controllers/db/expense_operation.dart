@@ -1,10 +1,10 @@
-import 'package:my_wallet/controllers/db/db_helper.dart';
-import 'package:my_wallet/models/models.dart';
+import 'db_helper.dart';
+import '../../models/models.dart';
 
 class ExpenseOperation {
   ExpenseOperation? expenseOperation;
   static DBHelper dbHelperProvider = DBHelper.instance;
-  static const String _tableName = "expense";
+  static const String _tableName = "expenses";
 
   static Future getData() async {
     // this method gets data
@@ -35,12 +35,10 @@ class ExpenseOperation {
   static Future<void> deleteData({required Expense expense}) async {
     // this method delete data
     final sqlDB = await dbHelperProvider.database;
-    if (expense != null) {
-      sqlDB.delete(
-        _tableName,
-        where: "id = ?",
-        whereArgs: [expense.id],
-      );
-    }
+    sqlDB.delete(
+      _tableName,
+      where: "id = ?",
+      whereArgs: [expense.id],
+    );
   }
 }

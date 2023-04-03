@@ -1,9 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-// import 'package:month_picker_dialog/month_picker_dialog.dart';
+import 'package:my_wallet/models/models.dart';
+
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 import './widgets/widgets.dart';
+import '../../../controllers/expense_cubit/expense_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -25,16 +30,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void showCalendar() {
-    // showMonthPicker(
-    //   context: context,
-    //   firstDate: DateTime(2020),
-    //   initialDate: DateTime.now(),
-    //   lastDate: null,
-    // ).then((selectedDate) {
-    //   setState(() {
-    //     _selectedDate = selectedDate!;
-    //   });
-    // });
+    showMonthPicker(
+      context: context,
+      firstDate: DateTime(2020),
+      initialDate: DateTime.now(),
+      lastDate: null,
+    ).then((selectedDate) {
+      setState(() {
+        _selectedDate = selectedDate!;
+      });
+    });
   }
 
   void previousMonth() {
@@ -48,6 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedDate.day,
       );
     });
+    BlocProvider.of<ExpenseCubit>(context).filterByMonth(
+      dateTime: _selectedDate,
+    );
   }
 
   void nextMonth() {
@@ -58,6 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedDate.day,
       );
     });
+    BlocProvider.of<ExpenseCubit>(context).filterByMonth(
+      dateTime: _selectedDate,
+    );
   }
 
   @override
@@ -139,26 +150,59 @@ class _HomeScreenState extends State<HomeScreen> {
                             topRight: Radius.circular(45),
                           ),
                         ),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                          itemCount: 10,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).primaryColor,
-                              ),
-                              title: const Text(
-                                "Tarvuz",
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                              ),
-                              subtitle: Text(
-                                DateFormat("d MMMM, y").format(
-                                  DateTime.now(),
+                        child: BlocBuilder<ExpenseCubit, ExpenseState>(
+                          builder: (context, state) {
+                            if (state is ExpenseLoaded) {
+                              return ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
                                 ),
-                              ),
-                              trailing: const Text("20,000 so'm"),
-                            );
+                                itemCount: state.expenses.length,
+                                itemBuilder: (context, index) {
+                                  Expense expense = state.expenses[index];
+                                  return ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                    ),
+                                    title: Text(
+                                      expense.title,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      DateFormat("d MMMM, y").format(
+                                        DateTime.now(),
+                                      ),
+                                    ),
+                                    trailing: Text("${expense.price} so'm"),
+                                  );
+                                },
+                              );
+                            } else if (state is ExpenseError) {
+                              return Center(
+                                child: Text(
+                                  state.errorMsg.toString(),
+                                  style: GoogleFonts.nunito(),
+                                ),
+                              );
+                            } else if (state is ExpenseLoading) {
+                              return const CircularProgressIndicator();
+                            } else {
+                              return Center(
+                                child: Container(
+                                  decoration: const BoxDecoration(),
+                                  child: Text(
+                                    "Information is not available!",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
                           },
                         ),
                       ),
@@ -173,6 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton.small(
         onPressed: () {
           showModalBottomSheet(
+            isDismissible: false,
             context: context,
             builder: (context) {
               return const AddExpense();

@@ -9,21 +9,23 @@ class DBHelper {
 
   static Future<sql.Database> _initDB() async {
     final dbPath = await sql.getDatabasesPath();
-    return await sql.openDatabase(syspath.join(dbPath, 'expenses.db'),
-        onCreate: onCreate, version: 1);
+
+    return await sql.openDatabase(
+      syspath.join(dbPath, 'expenses.db'),
+      onCreate: onCreate,
+      version: 1,
+    );
   }
 
   static Future onCreate(sql.Database db, int version) async {
-    await db.execute(
-      """
+    await db.execute("""
       CREATE TABLE expenses(
         id PRIMARY KEY NOT NULL,
         title TEXT NOT NULL, 
         dateTime     DATETIME NOT NULL,
         amount REAL NOT NULL,
         price REAL NOT NULL,
-        iconData TEXT NOT NULL
-        """,
-    );
+        iconData INT NOT NULL
+        );""");
   }
 }

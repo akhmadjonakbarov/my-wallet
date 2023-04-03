@@ -8,7 +8,7 @@ class Expense {
   String title;
   double amount;
   double price;
-  IconData iconData;
+  int iconData;
   DateTime dateTime;
   Expense({
     required this.id,
@@ -24,7 +24,7 @@ class Expense {
     String? title,
     double? amount,
     double? price,
-    IconData? iconData,
+    int? iconData,
     DateTime? dateTime,
   }) {
     return Expense(
@@ -43,7 +43,7 @@ class Expense {
       'title': title,
       'amount': amount,
       'price': price,
-      'iconData': iconData.codePoint,
+      'iconData': iconData,
       'dateTime': dateTime.millisecondsSinceEpoch,
     };
   }
@@ -54,7 +54,7 @@ class Expense {
       title: map['title'] as String,
       amount: map['amount'] as double,
       price: map['price'] as double,
-      iconData: IconData(map['iconData'] as int, fontFamily: 'MaterialIcons'),
+      iconData: map['iconData'] as int,
       dateTime: DateTime.fromMillisecondsSinceEpoch(map['dateTime'] as int),
     );
   }
