@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-import 'package:my_wallet/models/models.dart';
 
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
@@ -22,7 +20,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Size size;
   DateTime _selectedDate = DateTime.now();
-
+  double totalSum = 0.0;
+  double totalSumPercentage = 0.0;
   @override
   void didChangeDependencies() {
     size = MediaQuery.of(context).size;
@@ -73,146 +72,179 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    BlocProvider.of<ExpenseCubit>(context)
+        .totalExpenseByMonth(dateTime: _selectedDate)
+        .then((value) {
+      setState(() {
+        totalSum = value;
+        totalSumPercentage = totalSum * 100 / 1000000;
+        totalSumPercentage =
+            totalSumPercentage > 100 ? 100 : totalSumPercentage;
+      });
+    });
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         centerTitle: true,
         title: const Text('My Wallet'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Header(
-            showCalendar: showCalendar,
-            previousMonth: previousMonth,
-            nextMonth: nextMonth,
-            selectedDate: _selectedDate,
-            size: size,
-          ),
-          Container(
-            decoration: const BoxDecoration(),
-            height: size.height * 0.68,
-            child: LayoutBuilder(
-              builder: (p0, p1) {
-                return Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 4,
-                      ),
-                      width: double.infinity,
-                      height: p1.maxHeight,
-                      decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 227, 227, 240),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(45),
-                          topRight: Radius.circular(45),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Header(
+              totalSum: totalSum,
+              showCalendar: showCalendar,
+              previousMonth: previousMonth,
+              nextMonth: nextMonth,
+              selectedDate: _selectedDate,
+              size: size,
+            ),
+            Container(
+              decoration: const BoxDecoration(),
+              height: size.height * 0.68,
+              child: LayoutBuilder(
+                builder: (p0, p1) {
+                  return Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 4,
                         ),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Text("Oylik budjet:"),
-                                  TextButton.icon(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      size: 18,
-                                    ),
-                                    label: const Text(
-                                      "100,000",
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Text("4%")
-                            ],
-                          ),
-                          const ProgressBar()
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      child: Container(
-                        clipBehavior: Clip.antiAliasWithSaveLayer,
-                        width: p1.maxWidth,
-                        height: p1.maxHeight * 0.86,
+                        width: double.infinity,
+                        height: p1.maxHeight,
                         decoration: const BoxDecoration(
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 227, 227, 240),
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(45),
                             topRight: Radius.circular(45),
                           ),
                         ),
-                        child: BlocBuilder<ExpenseCubit, ExpenseState>(
-                          builder: (context, state) {
-                            if (state is ExpenseLoaded) {
-                              return ListView.builder(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                ),
-                                itemCount: state.expenses.length,
-                                itemBuilder: (context, index) {
-                                  Expense expense = state.expenses[index];
-                                  return ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
-                                    ),
-                                    title: Text(
-                                      expense.title,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text("Oylik budjet:"),
+                                    TextButton.icon(
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                          isDismissible: false,
+                                          context: context,
+                                          builder: (context) {
+                                            return Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 25,
+                                              ),
+                                              child: Column(
+                                                children: [
+                                                  const TextField(
+                                                    decoration:
+                                                        InputDecoration(),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceAround,
+                                                    children: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: const Text(
+                                                            "Cancel"),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () {},
+                                                        child:
+                                                            const Text("Enter"),
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        "1000000",
                                       ),
                                     ),
-                                    subtitle: Text(
-                                      DateFormat("d MMMM, y").format(
-                                        DateTime.now(),
-                                      ),
-                                    ),
-                                    trailing: Text("${expense.price} so'm"),
-                                  );
-                                },
-                              );
-                            } else if (state is ExpenseError) {
-                              return Center(
-                                child: Text(
-                                  state.errorMsg.toString(),
-                                  style: GoogleFonts.nunito(),
+                                  ],
                                 ),
-                              );
-                            } else if (state is ExpenseLoading) {
-                              return const CircularProgressIndicator();
-                            } else {
-                              return Center(
-                                child: Container(
-                                  decoration: const BoxDecoration(),
-                                  child: Text(
-                                    "Information is not available!",
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
+                                Text(
+                                    "${totalSumPercentage.toStringAsFixed(0)}%")
+                              ],
+                            ),
+                            ProgressBar(
+                              totalSumPer: totalSumPercentage,
+                            )
+                          ],
                         ),
                       ),
-                    )
-                  ],
-                );
-              },
-            ),
-          )
-        ],
+                      Positioned(
+                        bottom: 0,
+                        child: Container(
+                          clipBehavior: Clip.antiAliasWithSaveLayer,
+                          width: p1.maxWidth,
+                          height: p1.maxHeight * 0.86,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(45),
+                              topRight: Radius.circular(45),
+                            ),
+                          ),
+                          child: BlocBuilder<ExpenseCubit, ExpenseState>(
+                            builder: (context, state) {
+                              if (state is ExpenseLoaded) {
+                                return ExpenseListView(
+                                  state: state,
+                                );
+                              } else if (state is ExpenseError) {
+                                return Center(
+                                  child: Text(
+                                    state.errorMsg.toString(),
+                                    style: GoogleFonts.nunito(),
+                                  ),
+                                );
+                              } else if (state is ExpenseLoading) {
+                                return const CircularProgressIndicator();
+                              } else {
+                                return Center(
+                                  child: Container(
+                                    decoration: const BoxDecoration(),
+                                    child: Text(
+                                      "Information is not available!",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      )
+                    ],
+                  );
+                },
+              ),
+            )
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.small(
         onPressed: () {

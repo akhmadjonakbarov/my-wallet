@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class Header extends StatefulWidget {
-  Function()? showCalendar;
-  Function()? previousMonth;
-  Function()? nextMonth;
-  Size? size;
-  DateTime selectedDate;
-  Header({
+  final Function()? showCalendar;
+  final Function()? previousMonth;
+  final Function()? nextMonth;
+  final Size? size;
+  final double totalSum;
+  final DateTime selectedDate;
+
+  const Header({
     super.key,
     this.showCalendar,
     this.previousMonth,
     this.nextMonth,
     this.size,
+    required this.totalSum,
     required this.selectedDate,
   });
 
@@ -79,7 +83,7 @@ class _HeaderState extends State<Header> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    "450,000",
+                    "${widget.totalSum}",
                     style: GoogleFonts.montserrat(
                       fontSize: 35,
                       fontWeight: FontWeight.bold,

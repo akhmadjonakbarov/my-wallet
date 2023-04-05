@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:my_wallet/controllers/expense_cubit/expense_cubit.dart';
+import '../../../../controllers/expense_cubit/expense_cubit.dart';
 
 class AddExpense extends StatefulWidget {
   const AddExpense({super.key});
@@ -29,6 +29,7 @@ class _AddExpenseState extends State<AddExpense> {
         iconData: iconData,
         dateTime: _selectedDateOfExpense,
       );
+      Navigator.of(context).pop();
     }
   }
 

@@ -13,9 +13,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: ExpenseCubit()),
+        BlocProvider.value(
+          value: ExpenseCubit(),
+        ),
       ],
-      child: MaterialApp(home: HomeScreen()),
+      child: const MaterialApp(
+        home: HomeScreen(),
+      ),
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -10,13 +8,13 @@ part 'expense_state.dart';
 
 class ExpenseCubit extends Cubit<ExpenseState> {
   ExpenseCubit() : super(ExpenseInitial()) {
-    List<Expense> expenses = [];
-    ExpenseOperation.getData().then((value) {
-      if (value.isEmpty) {
+    ExpenseOperation.getData().then((data) {
+      if (data.isEmpty) {
         emit(ExpenseWelcome());
       } else {
-        expenses = value;
-        emit(ExpenseLoaded(expenses: expenses));
+        filterByMonth(
+          dateTime: DateTime.now(),
+        );
       }
     });
   }
@@ -28,14 +26,8 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     IconData? iconData,
     required DateTime dateTime,
   }) {
-    List<Expense> expenses = [];
-    if (state.expenses == null || state.expenses!.isEmpty) {
-      expenses = [];
-    } else {
-      expenses = state.expenses!;
-    }
+    List<Expense> expenses = state.expenses ?? [];
     try {
-      emit(ExpenseWelcome());
       Expense expense = Expense(
         id: UniqueKey().toString(),
         title: title,
@@ -59,6 +51,7 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     try {
       List<Expense> expenses = state.expenses!.map((e) {
         if (e.id == expense.id) {
+          ExpenseOperation.updateData(expense: expense);
           return Expense(
             id: expense.id,
             title: expense.title,
@@ -78,11 +71,17 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   }
 
   void delete({required Expense expense}) {
-    List<Expense> expenses = state.expenses!;
+    List<Expense> expenses = state.expenses ?? [];
     try {
-      expenses.removeWhere((element) => element.id == expense.id);
       emit(ExpenseLoading());
-      emit(ExpenseLoaded(expenses: expenses));
+      expenses.isNotEmpty
+          ? expenses.removeWhere((element) => element.id == expense.id)
+          : null;
+      emit(
+        ExpenseLoaded(
+          expenses: expenses,
+        ),
+      );
       ExpenseOperation.deleteData(expense: expense);
     } catch (e) {
       emit(
@@ -101,19 +100,49 @@ class ExpenseCubit extends Cubit<ExpenseState> {
         .toList();
   }
 
-  void filterByMonth({required DateTime dateTime}) {
-    List<Expense> expenses = state.expenses ?? [];
-    List<Expense> filteredExpense = [];
-    if (expenses.isNotEmpty) {
-      for (var element in expenses) {
-        if (element.dateTime.month == dateTime.month &&
-            element.dateTime.year == dateTime.year) {
-          filteredExpense.add(element);
-        }
-      }
-      emit(ExpenseLoaded(expenses: filteredExpense));
-    } else {
-      emit(ExpenseWelcome());
+  Future<double> totalExpenseByMonth({required DateTime dateTime}) async {
+    List<Expense> expenses = [];
+    List<Expense> filteredExpenses = [];
+    double totalSum = 0.0;
+    expenses = await ExpenseOperation.getData();
+    filteredExpenses = expenses.isNotEmpty
+        ? expenses
+            .where(
+              (element) =>
+                  element.dateTime.month == dateTime.month &&
+                  element.dateTime.year == dateTime.year,
+            )
+            .toList()
+        : [];
+    for (var element in filteredExpenses) {
+      totalSum = totalSum + element.price;
+    }
+    return totalSum;
+  }
+
+  Future<void> filterByMonth({required DateTime dateTime}) async {
+    List<Expense> expenses = [];
+    List<Expense> filteredExpenses = [];
+    emit(ExpenseInitial());
+    try {
+      expenses = await ExpenseOperation.getData();
+
+      filteredExpenses = expenses.isNotEmpty
+          ? expenses
+              .where(
+                (element) =>
+                    element.dateTime.month == dateTime.month &&
+                    element.dateTime.year == dateTime.year,
+              )
+              .toList()
+          : [];
+      filteredExpenses.isNotEmpty
+          ? emit(ExpenseLoaded(expenses: filteredExpenses))
+          : emit(ExpenseWelcome());
+    } catch (e) {
+      emit(
+        ExpenseError(errorMsg: e.toString()),
+      );
     }
   }
 }

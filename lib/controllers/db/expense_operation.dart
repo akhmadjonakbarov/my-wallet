@@ -1,5 +1,5 @@
-import 'db_helper.dart';
 import '../../models/models.dart';
+import 'db_helper.dart';
 
 class ExpenseOperation {
   ExpenseOperation? expenseOperation;
@@ -18,18 +18,21 @@ class ExpenseOperation {
     final sqlDB = await dbHelperProvider.database;
     if (data.isNotEmpty) {
       await sqlDB.insert(_tableName, data);
+      print("Data was added successfully");
     }
   }
 
   static Future<int> updateData({required Expense expense}) async {
     // this method update data
     final sqlDB = await dbHelperProvider.database;
-    return await sqlDB.update(
+    int res = await sqlDB.update(
       _tableName,
       expense.toMap(),
       where: "id = ?",
       whereArgs: [expense.id],
     );
+    print("Data was updated successfully");
+    return res;
   }
 
   static Future<void> deleteData({required Expense expense}) async {
@@ -40,5 +43,6 @@ class ExpenseOperation {
       where: "id = ?",
       whereArgs: [expense.id],
     );
+    print("Data was deleted successfully");
   }
 }

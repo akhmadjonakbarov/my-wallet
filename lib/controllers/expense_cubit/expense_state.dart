@@ -5,9 +5,7 @@ abstract class ExpenseState extends Equatable {
   final List<Expense>? expenses;
 
   @override
-  List<Object> get props => [
-        expenses!,
-      ];
+  List<Object> get props => [];
 }
 
 class ExpenseWelcome extends ExpenseState {}
