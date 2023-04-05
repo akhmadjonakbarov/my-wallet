@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 
-class ProgressBar extends StatelessWidget {
-  const ProgressBar({
+class ProgressBar extends StatefulWidget {
+  double totalSumPer;
+  ProgressBar({
     super.key,
+    required this.totalSumPer,
   });
+
+  @override
+  State<ProgressBar> createState() => _ProgressBarState();
+}
+
+class _ProgressBarState extends State<ProgressBar> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +29,7 @@ class ProgressBar extends StatelessWidget {
       ),
       child: FractionallySizedBox(
         heightFactor: 2,
-        widthFactor: 0.5,
+        widthFactor: widget.totalSumPer / 100,
         child: Container(
           height: 5,
           decoration: BoxDecoration(
