@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../../../../controllers/expense_cubit/expense_cubit.dart';
+
+import '../../../../controllers/logic/cubits.dart';
 
 class AddExpense extends StatefulWidget {
   const AddExpense({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:my_wallet/views/screens/home/widgets/widgets.dart';
 
-import '../../../../controllers/expense_cubit/expense_cubit.dart';
+import '../../../../controllers/logic/cubits.dart';
 import '../../../../models/models.dart';
+import './widgets.dart';
 
 class ExpenseListView extends StatelessWidget {
   final ExpenseState state;

@@ -61,7 +61,7 @@ class BankCubit extends Cubit<BankState> {
 
   Future<Bank> getLastBank({required DateTime dateTime}) async {
     List<dynamic> banks = [];
-    List<dynamic> filteredBank = [];
+    List<dynamic> filteredBanks = [];
     Bank bank = Bank(
       id: UniqueKey().toString(),
       bank: 250000,
@@ -69,7 +69,7 @@ class BankCubit extends Cubit<BankState> {
     );
 
     banks = await BankOperation.getData();
-    filteredBank = banks.isNotEmpty
+    filteredBanks = banks.isNotEmpty
         ? banks
             .where(
               (element) =>
@@ -79,11 +79,11 @@ class BankCubit extends Cubit<BankState> {
             .toList()
         : [];
 
-    if (filteredBank.isEmpty) {
-      filteredBank.insert(0, bank);
-      bank = filteredBank.first;
+    if (filteredBanks.isEmpty) {
+      filteredBanks.insert(0, bank);
+      bank = filteredBanks.first;
     } else {
-      bank = filteredBank.first;
+      bank = filteredBanks.first;
     }
     return bank;
   }

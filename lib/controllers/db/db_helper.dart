@@ -3,15 +3,17 @@ import 'package:sqflite/sqflite.dart' as sql;
 
 class DBHelper {
   DBHelper._privateConstructor();
+
   static final DBHelper instance = DBHelper._privateConstructor();
   static sql.Database? _database;
+
   Future<sql.Database> get database async => _database ??= await _initDB();
 
   static Future<sql.Database> _initDB() async {
     final dbPath = await sql.getDatabasesPath();
 
     return await sql.openDatabase(
-      syspath.join(dbPath, 'expenses.db'),
+      syspath.join(dbPath, 'my_wallet.db'),
       onCreate: onCreate,
       version: 1,
     );
@@ -26,6 +28,13 @@ class DBHelper {
         amount REAL NOT NULL,
         price REAL NOT NULL,
         iconData INT NOT NULL
+        );""");
+
+    await db.execute("""
+      CREATE TABLE banks(
+        id PRIMARY KEY NOT NULL,
+        bank REAL NOT NULL,
+        dateTime DATETIME NOT NULL
         );""");
   }
 }

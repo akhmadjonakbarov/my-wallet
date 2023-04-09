@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
+import '../../../models/models.dart';
 import './widgets/widgets.dart';
-import '../../../controllers/expense_cubit/expense_cubit.dart';
+import '../../../controllers/logic/cubits.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -22,9 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime _selectedDate = DateTime.now();
   double totalSum = 0.0;
   double totalSumPercentage = 0.0;
+  Bank? bank;
   @override
   void didChangeDependencies() {
     size = MediaQuery.of(context).size;
+
     super.didChangeDependencies();
   }
 
@@ -55,6 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
     BlocProvider.of<ExpenseCubit>(context).filterByMonth(
       dateTime: _selectedDate,
     );
+    BlocProvider.of<BankCubit>(context).filterByMonth(
+      dateTime: _selectedDate,
+    );
   }
 
   void nextMonth() {
@@ -68,16 +73,27 @@ class _HomeScreenState extends State<HomeScreen> {
     BlocProvider.of<ExpenseCubit>(context).filterByMonth(
       dateTime: _selectedDate,
     );
+    BlocProvider.of<BankCubit>(context).filterByMonth(
+      dateTime: _selectedDate,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    BlocProvider.of<BankCubit>(context)
+        .getLastBank(dateTime: _selectedDate)
+        .then((value) {
+      setState(() {
+        bank = value;
+      });
+    });
     BlocProvider.of<ExpenseCubit>(context)
         .totalExpenseByMonth(dateTime: _selectedDate)
         .then((value) {
       setState(() {
         totalSum = value;
-        totalSumPercentage = totalSum * 100 / 1000000;
+        double x = bank!.bank != 0.0 ? bank!.bank : 250000;
+        totalSumPercentage = totalSum * 100 / x;
         totalSumPercentage =
             totalSumPercentage > 100 ? 100 : totalSumPercentage;
       });
@@ -88,6 +104,19 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('My Wallet'),
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            AppBar(
+              automaticallyImplyLeading: false,
+            ),
+            ListTile(
+              onTap: () {},
+              title: Text("Banks"),
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -136,39 +165,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           isDismissible: false,
                                           context: context,
                                           builder: (context) {
-                                            return Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 25,
-                                              ),
-                                              child: Column(
-                                                children: [
-                                                  const TextField(
-                                                    decoration:
-                                                        InputDecoration(),
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceAround,
-                                                    children: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                        },
-                                                        child: const Text(
-                                                            "Cancel"),
-                                                      ),
-                                                      ElevatedButton(
-                                                        onPressed: () {},
-                                                        child:
-                                                            const Text("Enter"),
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
+                                            return editBankSheet(
+                                              selectedDateTime: _selectedDate,
                                             );
                                           },
                                         );
@@ -177,14 +175,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Icons.edit,
                                         size: 18,
                                       ),
-                                      label: const Text(
-                                        "1000000",
+                                      label: BlocBuilder<BankCubit, BankState>(
+                                        builder: (context, state) {
+                                          if (state is BankLoaded) {
+                                            Bank bank = state.banks.isNotEmpty
+                                                ? state.banks.first
+                                                : Bank(
+                                                    id: UniqueKey().toString(),
+                                                    bank: 250000,
+                                                    dateTime: DateTime.now(),
+                                                  );
+                                            return Text(
+                                                "${bank.bank.toStringAsFixed(0)} so'm");
+                                          } else {
+                                            return const Text("250000 so'm");
+                                          }
+                                        },
                                       ),
                                     ),
                                   ],
                                 ),
                                 Text(
-                                    "${totalSumPercentage.toStringAsFixed(0)}%")
+                                    "${totalSumPercentage.toStringAsFixed(2)}%")
                               ],
                             ),
                             ProgressBar(
@@ -258,6 +270,76 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         child: const Icon(
           CupertinoIcons.add,
+        ),
+      ),
+    );
+  }
+}
+
+class editBankSheet extends StatefulWidget {
+  final DateTime selectedDateTime;
+  const editBankSheet({
+    super.key,
+    required this.selectedDateTime,
+  });
+
+  @override
+  State<editBankSheet> createState() => _editBankSheetState();
+}
+
+class _editBankSheetState extends State<editBankSheet> {
+  final bankFormKey = GlobalKey<FormState>();
+
+  double bank = 0.0;
+
+  void _submit({required BuildContext context}) {
+    bool isValid = bankFormKey.currentState!.validate();
+    if (isValid) {
+      BlocProvider.of<BankCubit>(context).add(
+        value: bank,
+        dateTime: widget.selectedDateTime,
+      );
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 25,
+      ),
+      child: Form(
+        key: bankFormKey,
+        child: Column(
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(),
+              keyboardType: TextInputType.number,
+              onChanged: (inputBank) {
+                setState(() {
+                  bank = double.parse(inputBank);
+                });
+              },
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _submit(context: context);
+                  },
+                  child: const Text("Enter"),
+                )
+              ],
+            )
+          ],
         ),
       ),
     );

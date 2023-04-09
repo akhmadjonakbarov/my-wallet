@@ -9,7 +9,8 @@ class ExpenseOperation {
   static Future getData() async {
     // this method gets data
     final sqlDB = await dbHelperProvider.database;
-    List<Map<String, dynamic>> datas = await sqlDB.query(_tableName);
+    List<Map<String, dynamic>> datas =
+        await sqlDB.query(_tableName, orderBy: "id");
     return datas.map((data) => Expense.fromMap(data)).toList();
   }
 
